@@ -422,27 +422,16 @@ function addDots(r) {
   });
 }
 
-function getTransforms(node) {
-  const transforms = [];
-  while (node.tagName) {
-    const transform = node.getAttribute("transform");
-    if (transform) transforms.push(transform);
-    node = node.parentNode;
-  }
-  return transforms.reverse();
-}
-
 function removeTransforms(svg) {
+  // getCTM() requires visibility=visible & numerical width/height attributes
+  const viewBox = getViewBox(svg);
+  svg.setAttribute("width", viewBox[2]);
+  svg.setAttribute("height", viewBox[3]);
   for (const path of svg.getElementsByTagName("path")) {
-    const d = path.getAttribute("d");
-    const transforms = getTransforms(path);
-    if (transforms.length > 0) {
-      const newD = svgpath(d);
-      transforms.forEach((transform) => {
-        newD.transform(transform);
-      });
-      path.setAttribute("d", newD.toString());
-    }
+    const { a, b, c, d, e, f } = path.getCTM();
+    const pathData = svgpath(path.getAttribute("d"));
+    pathData.matrix([a, b, c, d, e, f]);
+    path.setAttribute("d", pathData.toString());
   }
   for (const node of svg.querySelectorAll("[transform]")) {
     node.removeAttribute("transform");
@@ -734,8 +723,6 @@ async function nextProblem() {
   const icon = await fetchIcon(url);
   svg = icon.documentElement;
   const tehon = svg.cloneNode(true);
-  tehon.style.width = "100%";
-  tehon.style.height = "100%";
   initSVGEvents();
 
   styleAttributeToAttributes(svg);
@@ -744,6 +731,7 @@ async function nextProblem() {
   removeSvgTagAttributes(svg);
   shape2path(svg, createPath, { circleAlgorithm: "QuadBezier" });
   removeUseTags(svg);
+
   removeTransforms(svg);
   problem = [];
   [...svg.getElementsByTagName("path")].forEach((path) => {
@@ -756,6 +744,8 @@ async function nextProblem() {
 
   svg.style.width = "100%";
   svg.style.height = "100%";
+  tehon.style.width = "100%";
+  tehon.style.height = "100%";
   const targets = document.querySelectorAll("#problems .iconContainer");
   targets[0].replaceChildren(tehon);
   targets[1].replaceChildren(svg);
