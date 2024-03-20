@@ -725,6 +725,7 @@ async function nextProblem() {
   const tehon = svg.cloneNode(true);
   initSVGEvents();
 
+  tehon.setAttribute("fill", "currentColor");
   styleAttributeToAttributes(svg);
   if (!svg.getAttribute("fill")) svg.setAttribute("fill", "gray");
   resetCurrentColor(svg);
@@ -799,6 +800,7 @@ const pad = new signaturePad(canvas, {
   maxWidth: 3,
   throttle: 0,
   minDistance: 0,
+  penColor: "gray",
 });
 resizeCanvas();
 globalThis.addEventListener("resize", resizeCanvas);
